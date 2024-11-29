@@ -1,10 +1,7 @@
 package com.example.Player.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
-
 import java.util.List;
 
 @Data
@@ -12,11 +9,16 @@ import java.util.List;
 @Table(name = "player")
 public class Player {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
     private String name;
     private String username;
     private String email;
     private int level;
     private int totalPoints;
-    private List<String> friends;
+
+    // One player can have many friends
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Friend> friends;
 }
