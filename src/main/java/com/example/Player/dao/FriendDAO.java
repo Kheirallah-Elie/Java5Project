@@ -1,12 +1,13 @@
 package com.example.Player.dao;
 
+import com.example.Player.dto.FriendDTO;
 import com.example.Player.dto.PlayerWithFriendsDTO;
 import com.example.Player.model.Friend;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import jakarta.persistence.EntityManager;
-
+import jakarta.persistence.Query;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,33 +20,44 @@ public class FriendDAO {
     private EntityManager entityManager;
 
     public List<PlayerWithFriendsDTO> findAllPlayersWithFriends() {
-        String query = """
-        SELECT new com.example.Player.dto.PlayerWithFriendsDTO(p.id, p.name, p.level, f)
-        FROM Player p
-        LEFT JOIN Friend f ON p.id = f.player.id
-        ORDER BY p.id
-    """;
+        String sqlQuery = """
+            SELECT p.id AS player_id, p.name AS player_name, 
+                   f.id AS friend_id, f.friendid AS friend_player_id, fp.name AS friend_name
+            FROM player p
+            LEFT JOIN friend f ON p.id = f.player_id
+            LEFT JOIN player fp ON f.friendID = fp.id
+            ORDER BY p.id
+        """;
 
-        List<PlayerWithFriendsDTO> resultList = entityManager.createQuery(query, PlayerWithFriendsDTO.class).getResultList();
 
-        // Group friends by player and eliminate duplicate Player entries
-        return groupFriendsByPlayer(resultList);
+        Query query = entityManager.createNativeQuery(sqlQuery);
+        List<Object[]> results = query.getResultList();
+
+        // Convert raw SQL result to PlayerWithFriendsDTO
+        return mapResultsToDTO(results);
     }
 
-    private List<PlayerWithFriendsDTO> groupFriendsByPlayer(List<PlayerWithFriendsDTO> flatList) {
-        Map<Long, PlayerWithFriendsDTO> playerMap = new HashMap<>();
+    private List<PlayerWithFriendsDTO> mapResultsToDTO(List<Object[]> results) {
+        Map<Integer, PlayerWithFriendsDTO> playerMap = new HashMap<>();
 
-        for (PlayerWithFriendsDTO dto : flatList) {
-            // Check if PlayerWithFriendsDTO already exists for this player
-            if (!playerMap.containsKey(dto.getPlayerId())) {
-                // Create a new DTO with an empty list of friends
-                playerMap.put(dto.getPlayerId(), new PlayerWithFriendsDTO(dto.getPlayerId(), dto.getPlayerName(), dto.getPlayerLevel()));
+        for (Object[] row : results) {
+            int playerId = ((Number) row[0]).intValue();  // Cast player ID to int
+            String playerName = (String) row[1];
+            int friendId = row[2] != null ? ((Number) row[2]).intValue() : 0;  // Cast friend ID to int or 0 if null
+            String friendName = row[4] != null ? (String) row[4] : "";  // Get friend name or empty if null
+
+            PlayerWithFriendsDTO playerDTO = playerMap.get(playerId);
+
+            if (playerDTO == null) {
+                // If player not already in map, create and add a new DTO with no friends initially
+                playerDTO = new PlayerWithFriendsDTO(playerId, playerName);
+                playerMap.put(playerId, playerDTO);
             }
 
-            // Add the current Friend to the list if it exists
-            if (!dto.getFriends().isEmpty()) {
-                Friend friend = dto.getFriends().get(0); // Extract the single friend
-                playerMap.get(dto.getPlayerId()).getFriends().add(friend);
+            // If friend information is available, create a FriendDTO and add it to the DTO's friends list
+            if (friendId != 0) {
+                FriendDTO friendDTO = new FriendDTO(friendId, friendName);
+                playerDTO.getFriends().add(friendDTO);  // Add the FriendDTO object to the player's friends list
             }
         }
 
@@ -54,7 +66,7 @@ public class FriendDAO {
 
 
 
-    public Friend findFriendById(long id) {
+    public Friend findFriendById(int id) {
         return entityManager.find(Friend.class, id);
     }
 
@@ -67,7 +79,7 @@ public class FriendDAO {
         return entityManager.merge(friend);
     }
 
-    public void deleteFriend(long id) {
+    public void deleteFriend(int id) {
         Friend friend = findFriendById(id);
         if (friend != null) {
             entityManager.remove(friend);

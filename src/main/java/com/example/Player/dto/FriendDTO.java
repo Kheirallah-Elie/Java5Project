@@ -4,7 +4,11 @@ import lombok.Data;
 
 @Data
 public class FriendDTO {
-    private long id;
-    private long playerId;  // The ID of the associated Player
-    private int friendID;   // Friend's unique identifier
+    private int friendID;
+    private String friendName;
+
+    public FriendDTO(int friendID, String friendName) {
+        this.friendID = friendID;
+        this.friendName = friendName;
+    }
 }
