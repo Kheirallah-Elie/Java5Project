@@ -4,11 +4,11 @@ import lombok.Data;
 
 @Data
 public class FriendDTO {
-    private int friendID;
+    private int friendId;
     private String friendName;
 
-    public FriendDTO(int friendID, String friendName) {
-        this.friendID = friendID;
+    public FriendDTO(int friendId, String friendName) {
+        this.friendId = friendId;
         this.friendName = friendName;
     }
 }

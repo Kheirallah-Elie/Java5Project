@@ -34,6 +34,12 @@ public class FriendController {
         return friendService.getAllPlayersWithFriends();
     }
 
+    @GetMapping("/player/{id}/friends")
+    public List<PlayerWithFriendsDTO> getFriendsByPlayerId(@PathVariable int id) {
+        return friendService.getFriendsByPlayerId(id);
+    }
+
+
     // Retrieve a friend by ID
     @GetMapping("/{id}")
     public Optional<Friend> getFriendById(@PathVariable long id) {

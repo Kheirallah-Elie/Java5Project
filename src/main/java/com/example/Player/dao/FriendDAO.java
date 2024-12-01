@@ -19,7 +19,7 @@ public class FriendDAO {
     @Autowired
     private EntityManager entityManager;
 
-    public List<PlayerWithFriendsDTO> findAllPlayersWithFriends() {
+    public List<PlayerWithFriendsDTO> finAllPlayersWithAllTheirFriends() {
         String sqlQuery = """
             SELECT p.id AS player_id, p.name AS player_name, 
                    f.id AS friend_id, f.friendid AS friend_player_id, fp.name AS friend_name
@@ -37,33 +37,57 @@ public class FriendDAO {
         return mapResultsToDTO(results);
     }
 
+    public List<PlayerWithFriendsDTO> findFriendsByPlayerId(int playerId) {
+        String sqlQuery = """
+            SELECT p.id AS player_id,
+                   p.name AS player_name,
+                   f.id AS friend_id,
+                   f.friendID AS friend_player_id,
+                   fp.name AS friend_name
+            FROM player p
+            LEFT JOIN friend f ON p.id = f.player_id
+            LEFT JOIN player fp ON f.friendID = fp.id
+            WHERE p.id = :playerId
+            ORDER BY p.id
+        """;
+
+        Query query = entityManager.createNativeQuery(sqlQuery);
+        query.setParameter("playerId", playerId);  // Bind the playerId parameter
+        List<Object[]> results = query.getResultList();
+
+        // Convert raw SQL result to PlayerWithFriendsDTO
+        return mapResultsToDTO(results);
+    }
+
+
     private List<PlayerWithFriendsDTO> mapResultsToDTO(List<Object[]> results) {
         Map<Integer, PlayerWithFriendsDTO> playerMap = new HashMap<>();
 
         for (Object[] row : results) {
-            int playerId = ((Number) row[0]).intValue();  // Cast player ID to int
-            String playerName = (String) row[1];
-            int friendId = row[2] != null ? ((Number) row[2]).intValue() : 0;  // Cast friend ID to int or 0 if null
-            String friendName = row[4] != null ? (String) row[4] : "";  // Get friend name or empty if null
+            int playerId = ((Number) row[0]).intValue();       // Player ID
+            String playerName = (String) row[1];               // Player Name
+            int friendId = row[2] != null ? ((Number) row[2]).intValue() : 0;   // Friend ID (if exists)
+            String friendName = row[4] != null ? (String) row[4] : "";          // Friend Name (if exists)
 
+            // Get the existing PlayerWithFriendsDTO or create a new one if it doesn't exist
             PlayerWithFriendsDTO playerDTO = playerMap.get(playerId);
 
             if (playerDTO == null) {
-                // If player not already in map, create and add a new DTO with no friends initially
+                // Create and add new DTO if player not in map yet
                 playerDTO = new PlayerWithFriendsDTO(playerId, playerName);
                 playerMap.put(playerId, playerDTO);
             }
 
-            // If friend information is available, create a FriendDTO and add it to the DTO's friends list
+            // If friend information is available, add it to the player's list of friends
             if (friendId != 0) {
                 FriendDTO friendDTO = new FriendDTO(friendId, friendName);
-                playerDTO.getFriends().add(friendDTO);  // Add the FriendDTO object to the player's friends list
+                playerDTO.getFriends().add(friendDTO);  // Add the FriendDTO to the player's friend list
             }
         }
 
+        // Return a list of PlayerWithFriendsDTO, each with its corresponding list of friends
         return new ArrayList<>(playerMap.values());
     }
-
 
 
     public Friend findFriendById(int id) {

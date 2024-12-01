@@ -31,8 +31,13 @@ public class FriendService {
 
     // Retrieve all players with their friends
     public List<PlayerWithFriendsDTO> getAllPlayersWithFriends() {
-        return friendDAO.findAllPlayersWithFriends();
+        return friendDAO.finAllPlayersWithAllTheirFriends();
     }
+
+    public List<PlayerWithFriendsDTO> getFriendsByPlayerId(int playerId) {
+        return friendDAO.findFriendsByPlayerId(playerId);
+    }
+
 
     // Retrieve a friend by ID
     public Optional<Friend> getFriendById(long id) {
