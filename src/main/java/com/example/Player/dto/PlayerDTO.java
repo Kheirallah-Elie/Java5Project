@@ -11,6 +11,6 @@ public class PlayerDTO {
     private String username;
     private String email;
     private int level;
-    private int totalPoints;
+    private int total_points;
     private List<Long> friendIds;  // List of IDs of friends
 }

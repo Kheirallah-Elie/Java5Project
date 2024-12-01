@@ -7,11 +7,11 @@ import java.util.List;
 
 @Data
 public class PlayerWithFriendsDTO {
-    private int playerId;
+    private long playerId;
     private String playerName;
     private List<FriendDTO> friends = new ArrayList<>();
 
-    public PlayerWithFriendsDTO(int playerId, String playerName) {
+    public PlayerWithFriendsDTO(long playerId, String playerName) {
         this.playerId = playerId;
         this.playerName = playerName;
     }

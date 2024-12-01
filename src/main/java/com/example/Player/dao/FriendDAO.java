@@ -3,6 +3,7 @@ package com.example.Player.dao;
 import com.example.Player.dto.FriendDTO;
 import com.example.Player.dto.PlayerWithFriendsDTO;
 import com.example.Player.model.Friend;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -19,6 +20,71 @@ public class FriendDAO {
     @Autowired
     private EntityManager entityManager;
 
+    @Transactional
+    public void addFriendToPlayer(long playerId, long friendId) {
+        String sqlQuery = """
+        INSERT INTO friend (player_id, friendID)
+        VALUES (:playerId, :friendId)
+    """;
+
+        Query query1 = entityManager.createNativeQuery(sqlQuery);
+        query1.setParameter("playerId", playerId);
+        query1.setParameter("friendId", friendId);
+        query1.executeUpdate();
+
+        // Insert the reverse relationship (friend -> player)
+        Query query2 = entityManager.createNativeQuery(sqlQuery);
+        query2.setParameter("playerId", friendId);
+        query2.setParameter("friendId", playerId);
+        query2.executeUpdate();
+    }
+
+
+    @Transactional
+    public void updateFriend(long friendId, long newFriendId) {
+        String sqlQuery = """
+        UPDATE friend
+        SET friendID = :newFriendId
+        WHERE friendID = :friendId
+    """;
+
+        // Update the original relationship
+        Query query1 = entityManager.createNativeQuery(sqlQuery);
+        query1.setParameter("newFriendId", newFriendId);
+        query1.setParameter("friendId", friendId);
+        query1.executeUpdate();
+
+        // Update the reverse relationship
+        Query query2 = entityManager.createNativeQuery(sqlQuery);
+        query2.setParameter("newFriendId", friendId);  // reverse the new and old values
+        query2.setParameter("friendId", newFriendId);
+        query2.executeUpdate();
+    }
+
+
+    @Transactional
+    public void deleteFriendByPlayerId(long playerId, long friendId) {
+        String sqlQuery = """
+        DELETE FROM friend
+        WHERE player_id = :playerId
+        AND friendID = :friendId
+    """;
+
+        // Delete the original relationship
+        Query query1 = entityManager.createNativeQuery(sqlQuery);
+        query1.setParameter("playerId", playerId);
+        query1.setParameter("friendId", friendId);
+        query1.executeUpdate();
+
+        // Delete the reverse relationship
+        Query query2 = entityManager.createNativeQuery(sqlQuery);
+        query2.setParameter("playerId", friendId);
+        query2.setParameter("friendId", playerId);
+        query2.executeUpdate();
+    }
+
+
+    // Queries to show all the list of players with friends for diagnosis, not asked
     public List<PlayerWithFriendsDTO> finAllPlayersWithAllTheirFriends() {
         String sqlQuery = """
             SELECT p.id AS player_id, p.name AS player_name, 
@@ -37,7 +103,7 @@ public class FriendDAO {
         return mapResultsToDTO(results);
     }
 
-    public List<PlayerWithFriendsDTO> findFriendsByPlayerId(int playerId) {
+    public List<PlayerWithFriendsDTO> findFriendsByPlayerId(long playerId) {
         String sqlQuery = """
             SELECT p.id AS player_id,
                    p.name AS player_name,
@@ -87,26 +153,5 @@ public class FriendDAO {
 
         // Return a list of PlayerWithFriendsDTO, each with its corresponding list of friends
         return new ArrayList<>(playerMap.values());
-    }
-
-
-    public Friend findFriendById(int id) {
-        return entityManager.find(Friend.class, id);
-    }
-
-    public Friend saveFriend(Friend friend) {
-        entityManager.persist(friend);
-        return friend;
-    }
-
-    public Friend updateFriend(Friend friend) {
-        return entityManager.merge(friend);
-    }
-
-    public void deleteFriend(int id) {
-        Friend friend = findFriendById(id);
-        if (friend != null) {
-            entityManager.remove(friend);
-        }
     }
 }

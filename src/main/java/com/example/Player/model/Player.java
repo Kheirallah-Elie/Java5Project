@@ -10,13 +10,13 @@ import java.util.List;
 public class Player {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
 
     private String name;
     private String username;
     private String email;
     private int level;
-    private int totalPoints;
+    private int total_points;
 
     // One player can have many friends
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
