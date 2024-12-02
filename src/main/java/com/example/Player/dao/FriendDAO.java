@@ -2,7 +2,6 @@ package com.example.Player.dao;
 
 import com.example.Player.dto.FriendDTO;
 import com.example.Player.dto.PlayerWithFriendsDTO;
-import com.example.Player.model.Friend;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -23,9 +22,9 @@ public class FriendDAO {
     @Transactional
     public void addFriendToPlayer(long playerId, long friendId) {
         String sqlQuery = """
-        INSERT INTO friend (player_id, friendID)
-        VALUES (:playerId, :friendId)
-    """;
+            INSERT INTO friend (player_id, friendID)
+            VALUES (:playerId, :friendId)
+        """;
 
         Query query1 = entityManager.createNativeQuery(sqlQuery);
         query1.setParameter("playerId", playerId);
@@ -43,10 +42,10 @@ public class FriendDAO {
     @Transactional
     public void updateFriend(long friendId, long newFriendId) {
         String sqlQuery = """
-        UPDATE friend
-        SET friendID = :newFriendId
-        WHERE friendID = :friendId
-    """;
+            UPDATE friend
+            SET friendID = :newFriendId
+            WHERE friendID = :friendId
+        """;
 
         // Update the original relationship
         Query query1 = entityManager.createNativeQuery(sqlQuery);
@@ -65,10 +64,10 @@ public class FriendDAO {
     @Transactional
     public void deleteFriendByPlayerId(long playerId, long friendId) {
         String sqlQuery = """
-        DELETE FROM friend
-        WHERE player_id = :playerId
-        AND friendID = :friendId
-    """;
+            DELETE FROM friend
+            WHERE player_id = :playerId
+            AND friendID = :friendId
+        """;
 
         // Delete the original relationship
         Query query1 = entityManager.createNativeQuery(sqlQuery);
@@ -146,7 +145,7 @@ public class FriendDAO {
 
             // If friend information is available, add it to the player's list of friends
             if (friendId != 0) {
-                FriendDTO friendDTO = new FriendDTO(friendId, friendName);
+                FriendDTO friendDTO = new FriendDTO((long) friendId, friendName);
                 playerDTO.getFriends().add(friendDTO);  // Add the FriendDTO to the player's friend list
             }
         }

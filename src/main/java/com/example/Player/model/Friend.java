@@ -9,12 +9,12 @@ import lombok.Data;
 public class Friend {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id; // Primary key
+    private Long id; // Primary key
 
     // Many friends are associated with one player
     @ManyToOne
     @JoinColumn(name = "player_id", nullable = false)
     private Player player;
 
-    private int friendID; // ID of the friend
+    private Long friendID; // ID of the friend
 }

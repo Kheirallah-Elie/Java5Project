@@ -19,9 +19,9 @@ public class PlayerDAO {
     @Transactional
     public void addPlayer(Player player) {
         String sqlQuery = """
-        INSERT INTO player (name, username, email, level, total_points)
-        VALUES (:name, :username, :email, :level, :total_points)
-    """;
+            INSERT INTO player (name, username, email, level, total_points)
+            VALUES (:name, :username, :email, :level, :total_points)
+        """;
 
         Query query = entityManager.createNativeQuery(sqlQuery);
         query.setParameter("name", player.getName());
@@ -35,10 +35,10 @@ public class PlayerDAO {
     @Transactional
     public void updatePlayer(long playerId, Player player) {
         String sqlQuery = """
-        UPDATE player
-        SET name = :name, username = :username, email = :email, level = :level, total_points = :total_points
-        WHERE id = :playerId
-    """;
+            UPDATE player
+            SET name = :name, username = :username, email = :email, level = :level, total_points = :total_points
+            WHERE id = :playerId
+        """;
 
         Query query = entityManager.createNativeQuery(sqlQuery);
         query.setParameter("name", player.getName());
@@ -80,5 +80,4 @@ public class PlayerDAO {
     public Player updatePlayer(Player player) {
         return entityManager.merge(player);
     }
-
 }
