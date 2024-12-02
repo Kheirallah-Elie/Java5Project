@@ -16,5 +16,13 @@ public class Friend {
     @JoinColumn(name = "player_id", nullable = false)
     private Player player;
 
-    private Long friendID; // ID of the friend
+    private Long friendID;
+
+    public Friend(Player player, Long friendID) {
+        this.player = player;
+        this.friendID = friendID;
+    }
+
+    // Default constructor (required by JPA)
+    public Friend() {}
 }

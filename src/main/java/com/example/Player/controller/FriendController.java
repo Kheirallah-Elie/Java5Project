@@ -20,12 +20,6 @@ public class FriendController {
         return "Friend added successfully!";
     }
 
-    @PutMapping("/update/{friendId}/{newFriendId}")
-    public String updateFriend(@PathVariable long friendId, @PathVariable long newFriendId) {
-        friendService.updateFriend(friendId, newFriendId);
-        return "Friend updated successfully!";
-    }
-
     @DeleteMapping("/delete/{playerId}/{friendId}")
     public String deleteFriend(@PathVariable long playerId, @PathVariable long friendId) {
         friendService.deleteFriendByPlayerId(playerId, friendId);

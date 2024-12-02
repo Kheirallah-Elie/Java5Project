@@ -3,6 +3,7 @@ package com.example.Player.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -18,7 +19,18 @@ public class Player {
     private int level;
     private int total_points;
 
-    // One player can have many friends
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Friend> friends;
+
+    // method to add a friend
+    public void addFriend(Player friendPlayer) {
+        Friend friend = new Friend(this, friendPlayer.getId());
+        friends.add(friend);
+        friendPlayer.getFriends().add(new Friend(friendPlayer, this.getId())); // Add reverse
+    }
+
+    // Method to remove a friend
+    public void removeFriend(Long friendId) {
+        friends.removeIf(friend -> Objects.equals(friend.getFriendID(), friendId));
+    }
 }

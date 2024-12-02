@@ -1,7 +1,7 @@
 package com.example.Player.controller;
 
+import com.example.Player.dto.PlayerAddDTO;
 import com.example.Player.dto.PlayerDTO;
-import com.example.Player.model.Player;
 import com.example.Player.service.PlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +17,8 @@ public class PlayerController {
     private PlayerService playerService;
 
     @PostMapping("/add")
-    public String addPlayer(@RequestBody PlayerDTO playerDTO) {
-        playerService.addPlayer(playerDTO);
+    public String addPlayer(@RequestBody PlayerAddDTO playerAddDTO) {
+        playerService.addPlayer(playerAddDTO);
         return "Player added successfully!";
     }
 
