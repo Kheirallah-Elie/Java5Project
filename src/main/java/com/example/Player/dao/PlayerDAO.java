@@ -1,6 +1,7 @@
 package com.example.Player.dao;
 
 import com.example.Player.model.Player;
+import com.example.Player.repository.IPlayerRepository;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,50 +17,23 @@ public class PlayerDAO {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private IPlayerRepository playerRepository;
+
     @Transactional
     public void addPlayer(Player player) {
-        String sqlQuery = """
-            INSERT INTO player (name, username, email, level, total_points)
-            VALUES (:name, :username, :email, :level, :total_points)
-        """;
-
-        Query query = entityManager.createNativeQuery(sqlQuery);
-        query.setParameter("name", player.getName());
-        query.setParameter("username", player.getUsername());
-        query.setParameter("email", player.getEmail());
-        query.setParameter("level", player.getLevel());
-        query.setParameter("total_points", player.getTotal_points());
-        query.executeUpdate();
+        playerRepository.save(player);
     }
 
     @Transactional
     public void updatePlayer(long playerId, Player player) {
-        String sqlQuery = """
-            UPDATE player
-            SET name = :name, username = :username, email = :email, level = :level, total_points = :total_points
-            WHERE id = :playerId
-        """;
-
-        Query query = entityManager.createNativeQuery(sqlQuery);
-        query.setParameter("name", player.getName());
-        query.setParameter("username", player.getUsername());
-        query.setParameter("email", player.getEmail());
-        query.setParameter("level", player.getLevel());
-        query.setParameter("total_points", player.getTotal_points());
-        query.setParameter("playerId", playerId);
-        query.executeUpdate();
+        player.setId(playerId);
+        playerRepository.save(player);
     }
 
     @Transactional
     public void deletePlayer(long playerId) {
-        String sqlQuery = """
-            DELETE FROM player
-            WHERE id = :playerId
-        """;
-
-        Query query = entityManager.createNativeQuery(sqlQuery);
-        query.setParameter("playerId", playerId);
-        query.executeUpdate();
+        playerRepository.deleteById(playerId);
     }
 
 

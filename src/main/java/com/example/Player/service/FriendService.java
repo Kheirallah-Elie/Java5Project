@@ -31,7 +31,6 @@ public class FriendService {
     public void deleteFriendByPlayerId(long playerId, long friendId) {
         friendDAO.deleteFriendByPlayerId(playerId, friendId);
     }
-
     // Retrieve all players with their friends
     public List<PlayerWithFriendsDTO> getAllPlayersWithFriends() {
         return friendDAO.finAllPlayersWithAllTheirFriends();

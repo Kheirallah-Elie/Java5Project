@@ -18,25 +18,13 @@ public class PlayerController {
 
     @PostMapping("/add")
     public String addPlayer(@RequestBody PlayerDTO playerDTO) {
-        Player player = new Player();
-        player.setName(playerDTO.getName());
-        player.setUsername(playerDTO.getUsername());
-        player.setEmail(playerDTO.getEmail());
-        player.setLevel(playerDTO.getLevel());
-        player.setTotal_points(playerDTO.getTotal_points());
-        playerService.addPlayer(player);
+        playerService.addPlayer(playerDTO);
         return "Player added successfully!";
     }
 
     @PutMapping("/update/{id}")
     public String updatePlayer(@PathVariable long id, @RequestBody PlayerDTO playerDTO) {
-        Player player = playerService.findPlayerById(id);
-        player.setName(playerDTO.getName());
-        player.setUsername(playerDTO.getUsername());
-        player.setEmail(playerDTO.getEmail());
-        player.setLevel(playerDTO.getLevel());
-        player.setTotal_points(playerDTO.getTotal_points());
-        playerService.updatePlayer(id, player);
+        playerService.updatePlayer(id, playerDTO);
         return "Player updated successfully!";
     }
 
