@@ -5,9 +5,6 @@ import com.example.Player.dto.PlayerWithFriendsDTO;
 import com.example.Player.repository.IFriendRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +12,6 @@ import java.util.Map;
 
 @Repository
 public class FriendDAO {
-    @Autowired
-    private EntityManager entityManager;
 
     @Autowired
     private IFriendRepository friendRepo;
@@ -34,6 +29,8 @@ public class FriendDAO {
         return mapResultsToDTO(rawResults);
     }
 
+
+    // This mapping method could be moved to the service, ask the teacher
     private List<PlayerWithFriendsDTO> mapResultsToDTO(List<Object[]> results) {
         Map<Integer, PlayerWithFriendsDTO> playerMap = new HashMap<>();
 

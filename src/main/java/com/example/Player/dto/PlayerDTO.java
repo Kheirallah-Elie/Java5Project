@@ -2,8 +2,6 @@ package com.example.Player.dto;
 
 import lombok.Data;
 
-import java.util.List;
-
 @Data
 public class PlayerDTO { // complete DTO for updating players
     private long id;

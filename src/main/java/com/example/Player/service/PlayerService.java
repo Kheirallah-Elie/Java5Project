@@ -46,7 +46,6 @@ public class PlayerService {
 
     public Player findPlayerById(long playerId) {
         return playerRepository.findById(playerId).orElse(null);
-        //return playerDAO.findPlayerById(playerId);
     }
 
     // Retrieve all players

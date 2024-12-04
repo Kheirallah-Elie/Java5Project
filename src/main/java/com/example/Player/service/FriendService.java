@@ -5,7 +5,6 @@ import com.example.Player.dao.PlayerDAO;
 import com.example.Player.dto.PlayerWithFriendsDTO;
 
 import com.example.Player.model.Player;
-import com.example.Player.repository.IFriendRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,9 +13,6 @@ import java.util.List;
 
 @Service
 public class FriendService {
-
-    @Autowired
-    private IFriendRepository friendRepo;
     @Autowired
     private FriendDAO friendDAO;
     @Autowired
@@ -24,7 +20,6 @@ public class FriendService {
 
     @Transactional
     public void addFriendToPlayer(long playerId, long friendId) {
-        //friendDAO.addFriendToPlayer(playerId, friendId);
         Player player = playerDAO.findPlayerById(playerId);  // Fetch the player entity
         Player friend = playerDAO.findPlayerById(friendId);  // Fetch the friend entity
 
@@ -36,7 +31,6 @@ public class FriendService {
 
     @Transactional
     public void deleteFriendByPlayerId(long playerId, long friendId) {
-        //friendDAO.deleteFriendByPlayerId(playerId, friendId);
         Player player = playerDAO.findPlayerById(playerId);
         Player friend = playerDAO.findPlayerById(friendId);
 
@@ -55,5 +49,4 @@ public class FriendService {
     public List<PlayerWithFriendsDTO> getFriendsByPlayerId(long playerId) {
         return friendDAO.getFriendsByPlayerId(playerId);
     }
-
 }

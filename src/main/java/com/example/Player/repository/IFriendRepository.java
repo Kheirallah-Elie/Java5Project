@@ -1,7 +1,6 @@
 package com.example.Player.repository;
 
 import com.example.Player.model.Friend;
-import com.example.Player.dto.PlayerWithFriendsDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,4 +28,3 @@ public interface IFriendRepository extends JpaRepository<Friend, Long> {
 
     // Sending RAW data so that we can map them in the DAO
 }
-
