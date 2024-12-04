@@ -39,9 +39,18 @@ public class PlayerController {
         return playerService.getAllPlayers();
     }
 
+    // Endpoint to fetch player details by ID
     @GetMapping("/{id}")
-    public Optional<PlayerDTO> getPlayerById(@PathVariable long id) {
-        return playerService.getPlayerById(id);
+    public PlayerDTO getPlayerById(@PathVariable long id) {
+        return playerService.getPlayerById(id).orElseThrow(() -> new RuntimeException("Player not found"));
     }
+
+    // Endpoint to update the player's total points
+    @PostMapping("/{id}/updatePoints/{points}")
+    public void updatePlayerPoints(@PathVariable("id") int playerId, @PathVariable int points) {
+        playerService.updatePlayerPoints(playerId, points);
+    }
+
+
 
 }

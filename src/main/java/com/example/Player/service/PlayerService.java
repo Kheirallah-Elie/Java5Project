@@ -69,4 +69,16 @@ public class PlayerService {
         dto.setTotal_points(player.getTotal_points());
         return dto;
     }
+
+    // This will receive communication from the Game app to update the player's points
+    @Transactional
+    public void updatePlayerPoints(long playerId, int points) {
+        Player player = findPlayerById(playerId);
+        if (player != null) {
+            player.setTotal_points(player.getTotal_points() + points);  // Add points to total
+            playerDAO.updatePlayer(playerId, player);
+        } else {
+            throw new RuntimeException("Player not found with id: " + playerId);
+        }
+    }
 }
