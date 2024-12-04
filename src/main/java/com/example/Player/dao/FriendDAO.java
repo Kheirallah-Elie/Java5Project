@@ -2,6 +2,7 @@ package com.example.Player.dao;
 
 import com.example.Player.dto.FriendDTO;
 import com.example.Player.dto.PlayerWithFriendsDTO;
+import com.example.Player.repository.IFriendRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -17,47 +18,21 @@ public class FriendDAO {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private IFriendRepository friendRepo;
+
+    // No CRUD necessary here as we are using PlayerDAO to add and remove friends
+
     // Queries to show all the list of players with friends for diagnosis, not asked
-    public List<PlayerWithFriendsDTO> finAllPlayersWithAllTheirFriends() {
-        String sqlQuery = """
-            SELECT p.id AS player_id, p.name AS player_name, 
-                   f.id AS friend_id, f.friendid AS friend_player_id, fp.name AS friend_name
-            FROM player p
-            LEFT JOIN friend f ON p.id = f.player_id
-            LEFT JOIN player fp ON f.friendID = fp.id
-            ORDER BY p.id
-        """;
-
-
-        Query query = entityManager.createNativeQuery(sqlQuery);
-        List<Object[]> results = query.getResultList();
-
-        // Convert raw SQL result to PlayerWithFriendsDTO
-        return mapResultsToDTO(results);
+    public List<PlayerWithFriendsDTO> getFriendsByPlayerId(long playerId) {
+        List<Object[]> rawResults = friendRepo.findRawFriendsByPlayerId(playerId);
+        return mapResultsToDTO(rawResults);
     }
 
-    public List<PlayerWithFriendsDTO> findFriendsByPlayerId(long playerId) {
-        String sqlQuery = """
-            SELECT p.id AS player_id,
-                   p.name AS player_name,
-                   f.id AS friend_id,
-                   f.friendID AS friend_player_id,
-                   fp.name AS friend_name
-            FROM player p
-            LEFT JOIN friend f ON p.id = f.player_id
-            LEFT JOIN player fp ON f.friendID = fp.id
-            WHERE p.id = :playerId
-            ORDER BY p.id
-        """;
-
-        Query query = entityManager.createNativeQuery(sqlQuery);
-        query.setParameter("playerId", playerId);  // Bind the playerId parameter
-        List<Object[]> results = query.getResultList();
-
-        // Convert raw SQL result to PlayerWithFriendsDTO
-        return mapResultsToDTO(results);
+    public List<PlayerWithFriendsDTO> getAllPlayersWithFriends() {
+        List<Object[]> rawResults = friendRepo.findRawAllPlayersWithAllTheirFriends();
+        return mapResultsToDTO(rawResults);
     }
-
 
     private List<PlayerWithFriendsDTO> mapResultsToDTO(List<Object[]> results) {
         Map<Integer, PlayerWithFriendsDTO> playerMap = new HashMap<>();

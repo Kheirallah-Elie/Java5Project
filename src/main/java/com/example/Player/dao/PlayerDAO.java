@@ -20,6 +20,7 @@ public class PlayerDAO {
     @Autowired
     private IPlayerRepository playerRepository;
 
+    //CRUD Operations using JPA
     @Transactional
     public void addPlayer(Player player) {
         playerRepository.save(player);
