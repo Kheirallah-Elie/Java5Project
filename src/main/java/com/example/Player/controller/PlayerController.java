@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/players")
@@ -47,10 +46,12 @@ public class PlayerController {
 
     // Endpoint to update the player's total points
     @PostMapping("/{id}/updatePoints/{points}")
-    public void updatePlayerPoints(@PathVariable("id") int playerId, @PathVariable int points) {
+    public void updatePlayerPoints(@PathVariable("id") long playerId, @PathVariable int points) {
         playerService.updatePlayerPoints(playerId, points);
     }
 
-
-
+    @PutMapping("{id}/addAttendance/{attendanceId}")
+    public void addAttendanceToPlayer(@PathVariable("id") long playerId, @PathVariable("attendanceId") long attendanceId ){
+        playerService.addAttendanceToPlayer(playerId, attendanceId);
+    }
 }

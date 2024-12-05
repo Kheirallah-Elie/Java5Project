@@ -9,6 +9,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,6 +38,7 @@ public class PlayerService {
         player.setEmail(playerDTO.getEmail());
         player.setLevel(playerDTO.getLevel());
         player.setTotal_points(playerDTO.getTotal_points());
+        player.setAttendanceIDs(playerDTO.getAttendanceIDs());
         playerDAO.updatePlayer(playerId, player);
     }
 
@@ -67,6 +69,7 @@ public class PlayerService {
         dto.setEmail(player.getEmail());
         dto.setLevel(player.getLevel());
         dto.setTotal_points(player.getTotal_points());
+        dto.setAttendanceIDs(player.getAttendanceIDs());
         return dto;
     }
 
@@ -79,6 +82,23 @@ public class PlayerService {
             playerDAO.updatePlayer(playerId, player);
         } else {
             throw new RuntimeException("Player not found with id: " + playerId);
+        }
+    }
+
+    public void addAttendanceToPlayer(long playerId, long attendanceId) {
+        Player player = findPlayerById(playerId);  // Fetch the player by ID
+        if (player != null) {
+            List<Long> attendanceIDs = player.getAttendanceIDs();  // Get the current list of attendance IDs
+
+            if (attendanceIDs != null) {
+                attendanceIDs.add(attendanceId);  // Add the new attendance ID
+            } else {
+                attendanceIDs = new ArrayList<>();  // Initialize a new list if null
+                attendanceIDs.add(attendanceId);
+            }
+
+            player.setAttendanceIDs(attendanceIDs);  // Set the updated list back to the player
+            playerDAO.updatePlayer(playerId, player);  // Update the player in the database
         }
     }
 }

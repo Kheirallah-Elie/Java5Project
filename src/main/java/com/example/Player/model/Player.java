@@ -18,6 +18,7 @@ public class Player {
     private String email;
     private int level;
     private int total_points;
+    private List<Long> attendanceIDs; // here I am creating a list of all the attendance IDs that the player will have
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Friend> friends;
