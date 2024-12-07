@@ -1,10 +1,11 @@
-package com.example.Player.service;
+package com.example.Player.service.impl;
 
-import com.example.Player.dao.FriendDAO;
-import com.example.Player.dao.PlayerDAO;
+import com.example.Player.dao.impl.FriendDAO;
+import com.example.Player.dao.impl.PlayerDAO;
 import com.example.Player.dto.PlayerWithFriendsDTO;
 
 import com.example.Player.model.Player;
+import com.example.Player.service.IFriendService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,16 +13,16 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class FriendService {
+public class FriendService implements IFriendService {
     @Autowired
     private FriendDAO friendDAO;
     @Autowired
     private PlayerDAO playerDAO;
 
     @Transactional
-    public void addFriendToPlayer(long playerId, long friendId) {
-        Player player = playerDAO.findPlayerById(playerId);  // Fetch the player entity
-        Player friend = playerDAO.findPlayerById(friendId);  // Fetch the friend entity
+    public void addFriend(long playerId, long friendId) {
+        Player player = playerDAO.getPlayerById(playerId);  // Fetch the player entity
+        Player friend = playerDAO.getPlayerById(friendId);  // Fetch the friend entity
 
         if (player != null && friend != null) {
             player.addFriend(friend);  // Add friend in both directions
@@ -30,9 +31,9 @@ public class FriendService {
     }
 
     @Transactional
-    public void deleteFriendByPlayerId(long playerId, long friendId) {
-        Player player = playerDAO.findPlayerById(playerId);
-        Player friend = playerDAO.findPlayerById(friendId);
+    public void deleteFriend(long playerId, long friendId) {
+        Player player = playerDAO.getPlayerById(playerId);
+        Player friend = playerDAO.getPlayerById(friendId);
 
         if (player != null && friend != null) {
             player.removeFriend(friendId);  // Remove the friend from player
@@ -41,7 +42,10 @@ public class FriendService {
             playerDAO.savePlayer(friend);   // Save the updated friend
         }
     }
-    // Retrieve all players with their friends
+
+
+
+    // Optional methods: Retrieve all players with their friends // not included in the interface
     public List<PlayerWithFriendsDTO> getAllPlayersWithFriends() {
         return friendDAO.getAllPlayersWithFriends();
     }

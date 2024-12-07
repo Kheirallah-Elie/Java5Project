@@ -1,7 +1,7 @@
 package com.example.Player.controller;
 
 import com.example.Player.dto.PlayerWithFriendsDTO;
-import com.example.Player.service.FriendService;
+import com.example.Player.service.impl.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,14 +16,14 @@ public class FriendController {
 
     @PostMapping("/{playerId}/addFriend/{friendId}")
     public String addFriend(@PathVariable long playerId, @PathVariable long friendId) {
-        friendService.addFriendToPlayer(playerId, friendId);
-        return "Friend added successfully!";
+        friendService.addFriend(playerId, friendId);
+        return "Friend added.";
     }
 
-    @DeleteMapping("/delete/{playerId}/{friendId}")
+    @DeleteMapping("/{playerId}/delete/{friendId}")
     public String deleteFriend(@PathVariable long playerId, @PathVariable long friendId) {
-        friendService.deleteFriendByPlayerId(playerId, friendId);
-        return "Friend deleted successfully!";
+        friendService.deleteFriend(playerId, friendId);
+        return "Friend deleted.";
     }
 
     // Retrieve all players with their friends

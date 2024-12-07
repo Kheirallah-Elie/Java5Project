@@ -17,14 +17,14 @@ public interface IFriendRepository extends JpaRepository<Friend, Long> {
             "LEFT JOIN Player fp ON f.friendID = fp.id " +
             "WHERE p.id = :playerId " +
             "ORDER BY p.id")
-    List<Object[]> findRawFriendsByPlayerId(@Param("playerId") long playerId);
+    List<Object[]> getRawFriendsByPlayerId(@Param("playerId") long playerId);
 
     @Query("SELECT p.id, p.name, f.id, f.friendID, fp.name " +
             "FROM Player p " +
             "LEFT JOIN p.friends f " +
             "LEFT JOIN Player fp ON f.friendID = fp.id " +
             "ORDER BY p.id")
-    List<Object[]> findRawAllPlayersWithAllTheirFriends();
+    List<Object[]> getRawAllPlayersWithAllTheirFriends();
 
     // Sending RAW data so that we can map them in the DAO
 }

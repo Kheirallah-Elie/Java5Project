@@ -1,10 +1,11 @@
-package com.example.Player.service;
+package com.example.Player.service.impl;
 
-import com.example.Player.dao.PlayerDAO;
+import com.example.Player.dao.impl.PlayerDAO;
 import com.example.Player.dto.PlayerAddDTO;
 import com.example.Player.dto.PlayerDTO;
 import com.example.Player.model.Player;
 import com.example.Player.repository.IPlayerRepository;
+import com.example.Player.service.IPlayerService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,24 +16,29 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class PlayerService {
+public class PlayerService implements IPlayerService {
     @Autowired
     private PlayerDAO playerDAO;
     @Autowired
-    private IPlayerRepository playerRepository;
+    private IPlayerRepository playerRepository; // used for testing, not needed here
 
+    @Override
     @Transactional
-    public void addPlayer(PlayerAddDTO playerAddDTO) { // I decided to add players and restrict adding total points and level
+    public void addPlayer(PlayerAddDTO playerAddDTO) { // I decided to add players and restrict adding total points and level at first through the PlayerAddDTO
         Player player = new Player();
         player.setName(playerAddDTO.getName());
         player.setUsername(playerAddDTO.getUsername());
         player.setEmail(playerAddDTO.getEmail());
         playerDAO.addPlayer(player);
     }
-
+    @Override
+    public Player getPlayerById(long playerId) {
+        return playerDAO.getPlayerById(playerId);
+    }
+    @Override
     @Transactional
     public void updatePlayer(long playerId, PlayerDTO playerDTO) { // updating the player can use a different DTO that accessed their level and total points
-        Player player = findPlayerById(playerId);
+        Player player = getPlayerById(playerId);
         player.setName(playerDTO.getName());
         player.setUsername(playerDTO.getUsername());
         player.setEmail(playerDTO.getEmail());
@@ -41,42 +47,17 @@ public class PlayerService {
         player.setAttendanceIDs(playerDTO.getAttendanceIDs());
         playerDAO.updatePlayer(playerId, player);
     }
-
+    @Override
     public void deletePlayer(long playerId) {
         playerDAO.deletePlayer(playerId);
     }
 
-    public Player findPlayerById(long playerId) {
-        return playerRepository.findById(playerId).orElse(null);
-    }
 
-    // Retrieve all players
-    public List<PlayerDTO> getAllPlayers() {
-        List<Player> players = playerRepository.findAll();
-        return players.stream().map(this::convertToDTO).collect(Collectors.toList());
-    }
-    // Retrieve a player by ID
-    public Optional<PlayerDTO> getPlayerById(long id) {
-        Player player = playerDAO.findPlayerById(id);
-        return player != null ? Optional.of(convertToDTO(player)) : Optional.empty();
-    }
 
-    private PlayerDTO convertToDTO(Player player) {
-        PlayerDTO dto = new PlayerDTO();
-        dto.setId(player.getId());
-        dto.setName(player.getName());
-        dto.setUsername(player.getUsername());
-        dto.setEmail(player.getEmail());
-        dto.setLevel(player.getLevel());
-        dto.setTotal_points(player.getTotal_points());
-        dto.setAttendanceIDs(player.getAttendanceIDs());
-        return dto;
-    }
-
-    // This will receive communication from the Game app to update the player's points
+    // This will receive communication from the Game app to update the player's points, external to the interface
     @Transactional
     public void updatePlayerPoints(long playerId, int points) {
-        Player player = findPlayerById(playerId);
+        Player player = getPlayerById(playerId);
         if (player != null) {
             player.setTotal_points(player.getTotal_points() + points);  // Add points to total
             playerDAO.updatePlayer(playerId, player);
@@ -84,9 +65,8 @@ public class PlayerService {
             throw new RuntimeException("Player not found with id: " + playerId);
         }
     }
-
     public void addAttendanceToPlayer(long playerId, long attendanceId) {
-        Player player = findPlayerById(playerId);  // Fetch the player by ID
+        Player player = getPlayerById(playerId);  // Fetch the player by ID
         if (player != null) {
             List<Long> attendanceIDs = player.getAttendanceIDs();  // Get the current list of attendance IDs
 
@@ -100,5 +80,31 @@ public class PlayerService {
             player.setAttendanceIDs(attendanceIDs);  // Set the updated list back to the player
             playerDAO.updatePlayer(playerId, player);  // Update the player in the database
         }
+    }
+
+    /////  **** THIS IS OPTIONAL FOR TESTING **** /////
+    // Retrieve all players
+    public List<PlayerDTO> getAllPlayers() {
+        List<Player> players = playerRepository.findAll(); // using the repository directly here for testing, only have a single player Get in the structure
+        return players.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+    // Retrieve a player by ID to a PlayerDTO, not a Player Object
+    public Optional<PlayerDTO> getPlayerByIdToPlayerDTO(long id) {
+        Player player = playerDAO.getPlayerById(id);
+        return player != null ? Optional.of(convertToDTO(player)) : Optional.empty();
+    }
+    /////  **** THIS IS OPTIONAL FOR TESTING **** /////
+
+    // Method to convert a Player object to PlayerDTO
+    private PlayerDTO convertToDTO(Player player) {
+        PlayerDTO dto = new PlayerDTO();
+        dto.setId(player.getId());
+        dto.setName(player.getName());
+        dto.setUsername(player.getUsername());
+        dto.setEmail(player.getEmail());
+        dto.setLevel(player.getLevel());
+        dto.setTotal_points(player.getTotal_points());
+        dto.setAttendanceIDs(player.getAttendanceIDs());
+        return dto;
     }
 }

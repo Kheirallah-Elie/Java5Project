@@ -1,5 +1,6 @@
-package com.example.Player.dao;
+package com.example.Player.dao.impl;
 
+import com.example.Player.dao.IFriendDAO;
 import com.example.Player.dto.FriendDTO;
 import com.example.Player.dto.PlayerWithFriendsDTO;
 import com.example.Player.repository.IFriendRepository;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class FriendDAO {
+public class FriendDAO implements IFriendDAO {
 
     @Autowired
     private IFriendRepository friendRepo;
@@ -20,15 +21,14 @@ public class FriendDAO {
 
     // Queries to show all the list of players with friends for diagnosis, not asked
     public List<PlayerWithFriendsDTO> getFriendsByPlayerId(long playerId) {
-        List<Object[]> rawResults = friendRepo.findRawFriendsByPlayerId(playerId);
+        List<Object[]> rawResults = friendRepo.getRawFriendsByPlayerId(playerId);
         return mapResultsToDTO(rawResults);
     }
 
     public List<PlayerWithFriendsDTO> getAllPlayersWithFriends() {
-        List<Object[]> rawResults = friendRepo.findRawAllPlayersWithAllTheirFriends();
+        List<Object[]> rawResults = friendRepo.getRawAllPlayersWithAllTheirFriends();
         return mapResultsToDTO(rawResults);
     }
-
 
     // This mapping method could be moved to the service, ask the teacher
     private List<PlayerWithFriendsDTO> mapResultsToDTO(List<Object[]> results) {
