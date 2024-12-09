@@ -59,7 +59,13 @@ The microservices communicate via REST APIs to synchronize player statistics wit
    - [RestAPI Communication](#restapi-communication-with-the-previous-player-project)
      - [Updating Player Points](#updating-player-points)
 
-4. [Database](#database)
+4. [Endpoints](#endpoints)
+   - [PlayerController Endpoints](#playercontroller-endpoints)
+   - [FriendController Endpoints](#friendcontroller-endpoints)
+   - [GameController Endpoints](#gamecontroller-endpoints)
+   - [AttendanceController Endpoints](#attendancecontroller-endpoints)
+
+5. [Database](#database)
    - [Database Schema](#database-schema)
      - [Player Management Service](#1-player-management-service)
        - [Player Table](#player)
@@ -69,10 +75,9 @@ The microservices communicate via REST APIs to synchronize player statistics wit
        - [Attendance Table](#attendance)
    - [Communication Between Services](#communication-between-services)
 
-5. [PostGreSQL Configuration](#postgresql)
-
-6. [Testing](#testing)
-7. [Installation and Setup](#installation-and-setup)
+6. [PostGreSQL Configuration](#postgresql)
+7. [Testing](#testing)
+8. [Installation and Setup](#installation-and-setup)
 
 ---
 
@@ -202,6 +207,7 @@ public class PlayerAddDTO {
 Used for creating new players without creating level or total_points, as these will be updated later when games are created and played.
 
 QUICK NOTE: **@Data** is a **Lombok** annotation that automatically provide **Getters** and **Setters** for all the object's attributes.
+
 
 ### PlayerDTO
 ``` JAVA
@@ -601,7 +607,195 @@ Then through the last **RestAPI** call, the **Player** who is **attending** that
 
 The rest of the flow is quite similar to the first project, using *DAOs* and *JPA* repository to handle **CRUD** operations.
 
+---
+# Endpoints
+---
+Now that we have covered most of the functionalities of this application, it's time to show all the **Endpoints** that this Backend offers and what they accomplish. 
 
+## PlayerController Endpoints
+
+``` java
+@RequestMapping("/players")
+public class PlayerController {
+    @PostMapping("/add")
+    @PutMapping("/update/{id}")
+    @DeleteMapping("/delete/{id}")
+    @GetMapping("/all")
+    @GetMapping("/{id}")
+    @PostMapping("/{id}/updatePoints/{points}")
+    @PostMapping("{id}/addAttendance/{attendanceId}")
+}
+```
+
+**/player/add** : This is a **Create** operation that will add a new player using the simpler PlayerAddDTO in this JSON format passed through the body: 
+```json
+{
+  "name": "Elie",
+  "username": "Eliekhopter",
+  "email": "Elie@cvdexample.com"
+}
+```
+**/players/update/{id}** : This is an **Update** operation that will update the selected player (with its ID passed in the URL) using the more complete PlayerDTO with this JSON format instead:
+```json
+{
+  "name": "ElieIsNowUpdated",
+  "username": "Eliekhopter",
+  "email": "Elie@cvdexample.com",
+  "level": 1500,
+  "totalPoints": 100
+}
+```
+**/players/delete/{id}** : This is a **Delete** operation that will simply deleted the selected player (with its ID passed in the URL). No JSON body required in this operation.
+
+
+**/players/all** : This is a **Read* operation that will read all the players that are in the database using a re-arranged list of PlayerDTO.
+
+**/players/{id}** : This is a **Read* operation that will read only the selected player through their ID in the URL, also using a re-arranged list of PlayerDTO.
+
+**/players/{id}/updatePoints/{points}** : This will be used by the **Game** project, as a RestAPI endpoint, to update the points of a player, based on the ID of the player and the points to add, passed through the URL.
+
+**/players/{id}/addAttendance/{attendanceId}** : This will also be used by the **Game** project, as a RestAPI endpoint, to add a new attendance of a Game to a selected player.
+
+
+## FriendController Endpoints
+
+``` java
+
+@RequestMapping("/friends")
+public class FriendController {
+    @PostMapping("/{playerId}/addFriend/{friendId}")
+    @DeleteMapping("/{playerId}/delete/{friendId}")
+    @GetMapping("/playersWithFriends")
+    @GetMapping("/player/{id}/friends")
+}
+```
+
+**/friends/{playerId}/addFriend/{friendId}** : This is a **Create** operation that will select the player ID that will receive a new player ID as a friend. Note that this works both ways, if ID1 adds ID2, ID2 will also add ID1 to their list of friends.
+
+**/friends/{playerId}/delete/{friendId}** : This is a **Delete** operation that will select the player ID that will delete an existing player ID from their friends. Note that this works both ways, if ID1 deletes ID2, ID2 will also delete ID1 from their list of friends.
+
+**/friends/playersWithFriends** : This is a **Read** operation that is using a special mapping based on the **PlayersWithFriendsDTO** to showcase a list of all the existing users with each one the list of their friends as follows 
+
+```json
+[
+    {
+        "playerId": 1,
+        "playerName": "John Doeerere",
+        "friends": [
+            {
+                "friendId": 1,
+                "friendName": "Jane Smith"
+            },
+            {
+                "friendId": 2,
+                "friendName": "Alice Johnson"
+            }
+        ]
+    },
+    {
+        "playerId": 2,
+        "playerName": "Jane Smith",
+        "friends": [
+            {
+                "friendId": 3,
+                "friendName": "John Doeerere"
+            }
+        ]
+    },
+    {
+        "playerId": 3,
+        "playerName": "Alice Johnson",
+        "friends": [
+            {
+                "friendId": 5,
+                "friendName": "John Doeerere"
+            }
+        ]
+    }
+]
+```
+
+**/friends/player/{id}/friends** : This is the same as above but only by selecting one player based on their ID.
+
+## GameController Endpoints
+
+``` java
+
+@RequestMapping("/games")
+public class GameController {
+    @PostMapping("/create")
+    @PutMapping("/update/{id}")
+    @DeleteMapping("/delete/{id}")
+    @GetMapping("/all")
+}
+```
+**/games/create** : This is a **Create** operation that will create a new game using this JSON in the body, 
+```JSON
+    {
+        "name": "Chess",
+        "type": "double",
+        "maxScore": 1000,
+        "idHost": 2
+    }
+```
+**/games/update/{id}** : This is an **Update** operation to update the game details using the **same** **JSON** structure in the body as with the create operation above.
+
+**/games/delete/{id}** : This is a **Delete** operation to delete a game through a selected **ID** in the **URL**, no JSON body required.
+
+**/games/all** : This is a **Read** operation using the GameDTO to map all the existing games in a JSON format as follows
+
+``` json
+[
+    {
+        "name": "Multiplayer Quiz",
+        "datePlayed": "2024-12-07T21:42:17.770+00:00",
+        "type": "multiplayer",
+        "maxScore": 1500,
+        "idHost": 1
+    },
+    {
+        "name": "Need For Speed",
+        "datePlayed": "2024-12-08T00:11:23.328+00:00",
+        "type": "single",
+        "maxScore": 1500,
+        "idHost": 3
+    },
+    {
+        "name": "Chess",
+        "datePlayed": "2024-12-08T00:11:40.661+00:00",
+        "type": "double",
+        "maxScore": 1000,
+        "idHost": 2
+    }
+]
+```
+
+## AttendanceController Endpoints
+
+``` java
+
+@RequestMapping("/attendances")
+public class AttendanceController {
+    @GetMapping("/{id}")
+    @PostMapping("/create/{playerId}/attending/{gameId}")
+    @PutMapping("/update/{id}")
+    @DeleteMapping("/delete/{id}")
+    @PutMapping("/UpdatePlayerPoints/{id}/{score}")
+}
+```
+**/attendances/{id}** : Gets the attendance through the attendance ID and maps it to AttendanceDTO.
+
+**/attendances/create/{playerId}/attending/{gameId}** : This will **Create** a new attendance and mark the player ID who is responsible of that attendance. This will fetch from the player project if the Player **exists** through a RestAPI call, and if they do, the attendance will be added to the database, and also added to the list of attendance to the Player's project through a second RestAPI call.
+
+**/attendances/update/{id}** : This will update
+
+**/attendances/delete/{id}** :
+
+**/attendances/UpdatePlayerPoints/{id}/{score}** :
+
+
+
+---
 # Database
 
 ## Database Schema
