@@ -241,7 +241,7 @@ public class PlayerWithFriendsDTO {
 ```
 - **Purpose**:
 Represents a player with their list of friends. This is optional, and will return a JSON as follows using a special Mapping in the FriendDAO class:
-```JS
+```JSON
 
     {
         "playerId": 1,
@@ -318,7 +318,7 @@ public String addPlayer(@RequestBody PlayerAddDTO playerAddDTO) {
 
 We need to add data in a JSON structure as follows and select "Post" in Postman
 
- ```JS
+ ```JSON
 "name": "Jane Smith",
 "username": "janesmith",
 "email": "jane@example.com",
