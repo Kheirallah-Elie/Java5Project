@@ -51,7 +51,7 @@ public class PlayerController {
         return points + " added to player "+playerId;
     }
 
-    @PutMapping("{id}/addAttendance/{attendanceId}")
+    @PostMapping("{id}/addAttendance/{attendanceId}")
     public void addAttendanceToPlayer(@PathVariable("id") long playerId, @PathVariable("attendanceId") long attendanceId ){
         playerService.addAttendanceToPlayer(playerId, attendanceId);
     }

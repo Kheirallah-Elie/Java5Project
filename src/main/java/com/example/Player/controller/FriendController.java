@@ -10,10 +10,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/friends")  // Base URL for Friend CRUD operations
 public class FriendController {
-
     @Autowired
     private FriendService friendService;
-
     @PostMapping("/{playerId}/addFriend/{friendId}")
     public String addFriend(@PathVariable long playerId, @PathVariable long friendId) {
         friendService.addFriend(playerId, friendId);

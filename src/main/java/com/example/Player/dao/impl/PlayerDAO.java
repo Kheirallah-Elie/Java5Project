@@ -37,12 +37,9 @@ public class PlayerDAO implements IPlayerDAO {
         playerRepository.deleteById(playerId);
     }
 
-
-
     //  Useful method to find and add friends with ease // Not implemented in the interface
     @Transactional
     public void savePlayer(Player player) {
         playerRepository.save(player);
     }
-
 }
