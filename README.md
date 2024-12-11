@@ -16,8 +16,6 @@ The microservices communicate via REST APIs to synchronize player statistics wit
 
 ---
 
-## Table of Contents
-
 # Table of Contents
 
 1. [Architecture](#architecture)
@@ -76,8 +74,9 @@ The microservices communicate via REST APIs to synchronize player statistics wit
    - [Communication Between Services](#communication-between-services)
 
 6. [PostGreSQL Configuration](#postgresql)
-7. [Testing](#testing)
-8. [Installation and Setup](#installation-and-setup)
+7. [Manually creating the tables with SQL Queries](#manually-creating-the-tables-with-sql-queries)
+8. [Testing](#testing)
+8. [Conclusion](#conclusion)
 
 ---
 
@@ -787,12 +786,11 @@ public class AttendanceController {
 
 **/attendances/create/{playerId}/attending/{gameId}** : This will **Create** a new attendance and mark the player ID who is responsible of that attendance. This will fetch from the player project if the Player **exists** through a RestAPI call, and if they do, the attendance will be added to the database, and also added to the list of attendance to the Player's project through a second RestAPI call.
 
-**/attendances/update/{id}** : This will update
+**/attendances/update/{id}** : This will **Update** the score or the status (is Winner or not) of the attendance.
 
-**/attendances/delete/{id}** :
+**/attendances/delete/{id}** : This will **Delete** the attendance, although it may be unecessary. 
 
-**/attendances/UpdatePlayerPoints/{id}/{score}** :
-
+**/attendances/UpdatePlayerPoints/{id}/{score}** : This will update the points of a player assuming once the attendance is finished, this endpoint could be used to increment the player's point using a RestAPI call again.
 
 
 ---
@@ -863,9 +861,9 @@ public class AttendanceController {
 
 ---
 
-## PostGreSQL
+# PostGreSQL
 
-The database used in this project is PostGreSQL, to achieve that, the port and the name of the database need to be specified in the **application.properties** file under the **resources** folder as follows:
+The database used in this project is **PostGreSQL**, to achieve that, the port and the name of the database need to be specified in the **application.properties** file under the **resources** folder as follows:
 
 ``` python
 spring.application.name=Game
@@ -878,3 +876,181 @@ spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.PostgreSQLDialec
 spring.jpa.hibernate.ddl-auto=update
 ```
 
+
+**This line is responsible for creating the database schema and managing the relationships:**
+
+```Java
+spring.jpa.hibernate.ddl-auto=update
+```
+
+It configures **Hibernate**, the **JPA** implementation used by **Spring Boot**, to manage the database schema **automatically**.
+
+**Hibernate** will check the database schema on application startup.
+If tables, columns, or relationships defined in the entity classes (@Entity, @OneToMany, etc.) do not exist, **Hibernate** will automatically add them to the database.
+Existing schema elements are **preserved**, <ins>and only necessary updates are applied.</ins>
+By defining the tables's relationships in Java classes using annotations like *@Entity, @Table, @OneToMany, and @ManyToOne,* **Hibernate** reads these entity definitions and compares them to the database schema.
+
+
+If there are differences, **Hibernate** modifies the schema to match the entity definitions.
+
+This simplifies development by automatically syncing your database schema with your entity models.
+
+### Caution:
+
+This setting is great for development but can be **risky** in production. It could **modify** the database schema, potentially causing **data loss**. For production, it's best to use **ddl-auto=validate** or generate the tables manually as follows.
+
+# Manually creating the tables with SQL Queries
+
+```SQL
+CREATE TABLE player (
+    id BIGSERIAL PRIMARY KEY, -- Primary key
+    name VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    level INT NOT NULL,
+    total_points INT NOT NULL
+);
+
+CREATE TABLE friend (
+    id BIGSERIAL PRIMARY KEY, -- Primary key for the table
+    player_id BIGINT NOT NULL, -- Foreign key to the player table
+    friend_id BIGINT NOT NULL, -- Stores the ID of the friend
+
+    CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES player (id) ON DELETE CASCADE
+);
+
+CREATE TABLE attendance (
+    id BIGSERIAL PRIMARY KEY, -- Primary key
+    game_id BIGINT NOT NULL, -- Foreign key to the game table
+    player_id BIGINT NOT NULL, -- Player ID (linked to the Player microservice via REST API)
+    score INT NOT NULL, -- Score achieved by the player
+    is_winner BOOLEAN NOT NULL, -- Indicates if the player is the winner
+
+    CONSTRAINT fk_game FOREIGN KEY (game_id) REFERENCES game (id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE game (
+    id BIGSERIAL PRIMARY KEY, -- Primary key
+    name VARCHAR(255) NOT NULL,
+    date_played DATE, -- Stores the date the game was played
+    type VARCHAR(100), -- Game type (e.g., strategy, action)
+    max_score INT NOT NULL, -- Maximum score achievable in the game
+    id_host INT NOT NULL -- Host ID (links to the host system via REST API)
+);
+```
+
+**Note**: The player_id is fetched via **REST API** from the **Player* service*, and game_id links the attendance to the respective game.
+And The player_id in the attendance table is not directly tied to a foreign key in the **Player** database but is retrieved via **REST API** calls when needed.
+
+
+The **Friend** constraint ensures that if a *player* is deleted from the **Player** table, all rows in another table (e.g., Friend) that reference that *player*'s ID are also automatically deleted. It helps keep the database clean by removing related data that is no longer relevant.
+
+Similarly when deleting a **Game**, the constraint would automatically delete any **Attendance** associated with it. 
+
+
+---
+# Testing
+
+A few **Mock** tests were running on PlayerController, FriendController, PlayerService, FriendService, AttendanceController, AttendanceService, GameController and GameService.
+
+Let's take an example of how the method in the **AttendanceService** containing the logic to correctly add a update an existing attendance in the **Attendance** table
+
+```java
+    @Test
+    void testUpdateAttendance() {
+        long attendanceId = 1L;
+        AttendanceDTO attendanceDTO = new AttendanceDTO();
+        attendanceDTO.setScore(15);
+        attendanceDTO.setWinner(true);
+
+        Attendance attendance = new Attendance();
+        attendance.setScore(10);
+        attendance.setWinner(false);
+
+        when(attendanceDAO.findById(attendanceId)).thenReturn(Optional.of(attendance));
+        when(attendanceDAO.updateAttendance(any(Attendance.class))).thenReturn(attendance);
+
+        AttendanceDTO result = attendanceService.updateAttendance(attendanceId, attendanceDTO);
+
+        assertNotNull(result);
+        assertEquals(15, result.getScore());
+        assertTrue(result.isWinner());
+        verify(attendanceDAO, times(1)).findById(attendanceId);
+        verify(attendanceDAO, times(1)).updateAttendance(any(Attendance.class));
+    }
+```
+In this case, we are testing this method in the **AttendanceService**:
+
+``` java 
+    @Override
+    public AttendanceDTO updateAttendance(long id, AttendanceDTO attendanceDTO) {
+        Optional<Attendance> optionalAttendance = attendanceDAO.findById(id);
+        if (optionalAttendance.isPresent()) {
+            Attendance attendance = optionalAttendance.get();
+            attendance.setWinner(attendanceDTO.isWinner());
+            attendance.setScore(attendanceDTO.getScore());
+
+            // Save the updated attendance
+            Attendance updatedAttendance = attendanceDAO.updateAttendance(attendance);
+
+            // Convert and return the updated attendance
+            return convertToDTO(updatedAttendance);
+        } else {
+            throw new IllegalArgumentException("Attendance not found with id: " + id);
+        }
+    }
+```
+
+#### How this Test Works:
+
+This test verifies that the **updateAttendance** method in **AttendanceService** correctly updates an existing attendance record in the **Attendance** table. Here's a detailed breakdown:
+
+**New attendance data to set:**
+`attendanceId` is set to `1L`, representing the ID of the attendance entry to be updated.
+`attendanceDTO` is a mock object simulating new data for the attendance entry. 
+- The new score is `15`.
+- The winner flag is set to `true`.
+
+**Existing Attendance:**
+`attendance` is another temproray mock object representing a virtual current state of the attendance entry in the database.
+- The current score is `10`.
+- The winner flag is `false`.
+
+The `when` methods configure the behavior of the mocked `attendanceDAO`:
+**Find by ID:** When `attendanceDAO.findById(attendanceId)` is called, it returns the mock `attendance` object wrapped in `Optional.of()`.
+**Update Attendance:** When `attendanceDAO.updateAttendance` is called with any `Attendance` object, it returns the same object, simulating a successful database update.
+
+The test calls `attendanceService.updateAttendance(attendanceId, attendanceDTO)`.
+Inside the `updateAttendance` method:
+1. The `attendanceDAO.findById` fetches the existing attendance.
+2. The attendance's properties (`score` and `winner`) are updated with values from `attendanceDTO`.
+3. The updated attendance is saved using `attendanceDAO.updateAttendance`.
+4. The updated attendance is converted to a `AttendanceDTO` and returned.
+
+
+The test verifies that:
+**The result is not null:** Ensures the service returns a valid object.
+**Score is updated correctly:** The score in the result matches the value in `attendanceDTO` (15).
+**Winner flag is updated correctly:** The winner flag in the result matches the value in `attendanceDTO` (true).
+
+
+`verify` ensures the mocks were called the expected number of times:
+- `attendanceDAO.findById` was called **once** to fetch the attendance.
+- `attendanceDAO.updateAttendance` was called **once** to save the updated attendance.
+
+
+This test ensures that:
+- The correct attendance record is fetched from the database.
+- Its properties are updated with the new values.
+- The updated record is saved.
+- The method behaves as expected, returning the updated data as a DTO.
+
+---
+
+# Conclusion
+
+This project was an enjoyable and insightful introduction to Spring Boot, JPA functionalities, and the practical implementation of REST API communication between two separate projects. While there is still room for improvement, the backend establishes a good starting foundation for managing databases and allows for future tweaks and adjustments to better align with user requirements.
+
+That said, some constraints, particularly in the Game module, could be enhanced. 
+Additionally, a few methods in the Friend microservice and the REST API calls in the Attendance microservice did not pass all tests and remain areas for further refinement. Overall, this project serves as a starting point with potential for optimization and expansion throughout the fullstack process.
